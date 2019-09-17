@@ -41,6 +41,12 @@
     - [15.2 creating K-Nearest neighbor classifier](#152-creating-k-nearest-neighbor-classifier)
     - [15.3 identifying the best neighborhood size](#153-identifying-the-best-neighborhood-size)
     - [15.3 creating a redius-based nearest neighbor classifier](#153-creating-a-redius-based-nearest-neighbor-classifier)
+  - [16. Logistic Regression](#16-logistic-regression)
+    - [16.1 training a binary classifier](#161-training-a-binary-classifier)
+    - [16.2 training a multiclass classifier](#162-training-a-multiclass-classifier)
+    - [16.3 reducing variance through regularization](#163-reducing-variance-through-regularization)
+    - [16.4 training a classifier on very large data](#164-training-a-classifier-on-very-large-data)
+    - [16.5 handling imbalanced classes](#165-handling-imbalanced-classes)
 
 # Machine Learning with Python cookcook
 
@@ -513,4 +519,59 @@ from sklearn.neighbors import RadiusNeighborsClassifier
 rnn = RadiusNeighborsClassifier(radius=0.5).fit(features_standardized, target)
 
 rnn.predict(new_observations)
+```
+
+## 16. Logistic Regression
+
+### 16.1 training a binary classifier
+
+```python
+# scaling features
+# fit model
+logistic_regression = LogisticRegression(random_state=0)
+logistic_regression.fit(features_standardize, target)
+```
+
+### 16.2 training a multiclass classifier
+
+using one-vs-rest or multinomial methods.
+
+For ‘multinomial’ the loss minimised is the multinomial loss fit across the entire probability distribution, even when the data is binary.
+
+```python
+# scaling features
+# fit model
+logistic_regression = LogisticRegression(random_state=0, multi_class='ovr)
+logistic_regression.fit(features_standardized, target)
+```
+
+### 16.3 reducing variance through regularization
+
+```python
+from sklearn.linear_model import LogisticRegressionCV
+
+# scaling features
+# fit model
+logistic_regression = LogisticRegressionCV(penalty='l1/l2', Cs=10, random_state=0)
+logistic_regression.fit(features_standardized, target)
+```
+
+### 16.4 training a classifier on very large data
+
+Training a logistic regression in scikit-learn with LogisticRegression using the stochastic average gradient (SAG) solver.
+
+```python
+# scaling features
+# fit model
+logistic_regression = LogisticRegression(solver='sag')
+logistic_regression.fit(features_standardized, target)
+```
+
+### 16.5 handling imbalanced classes
+
+The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as: $w_{j}=\frac{n}{k n_{j}}$. where wj is the weight to class j, n is the number of observations, nj is the number of observations in class j, and k is the total number of classes.
+```python
+# scaling features
+# fit model use class_weight='balanced'
+logistic_regression = LogisticRegression(random_state=0, class_weight='balanced')
 ```
