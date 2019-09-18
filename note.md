@@ -36,6 +36,18 @@
     - [13.2 fitting a nonlinear relationship](#132-fitting-a-nonlinear-relationship)
     - [13.4 reading variance with regularization](#134-reading-variance-with-regularization)
     - [13.5 reducing features with Lasso regression](#135-reducing-features-with-lasso-regression)
+  - [14. Trees and Forests](#14-trees-and-forests)
+    - [14.1 training a decision tree classifier](#141-training-a-decision-tree-classifier)
+    - [14.2 training a decision tree regressor](#142-training-a-decision-tree-regressor)
+    - [14.3 visualizing a decision tree model](#143-visualizing-a-decision-tree-model)
+    - [14.4 training a random forest classifier](#144-training-a-random-forest-classifier)
+    - [14.5 training a random forest regressor](#145-training-a-random-forest-regressor)
+    - [14.6 identifying important features in random forests](#146-identifying-important-features-in-random-forests)
+    - [14.7 selecting important features in random forests](#147-selecting-important-features-in-random-forests)
+    - [14.8 handling imbalanced classes](#148-handling-imbalanced-classes)
+    - [14.9 controlling tree size](#149-controlling-tree-size)
+    - [14.10 improving performance through boosting](#1410-improving-performance-through-boosting)
+    - [14.11 evaluating random forests with Oout-of-Bag errors](#1411-evaluating-random-forests-with-oout-of-bag-errors)
   - [15. K-Nearest Neighbors](#15-k-nearest-neighbors)
     - [15.1 finding an observation's nearest neighbors](#151-finding-an-observations-nearest-neighbors)
     - [15.2 creating K-Nearest neighbor classifier](#152-creating-k-nearest-neighbor-classifier)
@@ -47,6 +59,11 @@
     - [16.3 reducing variance through regularization](#163-reducing-variance-through-regularization)
     - [16.4 training a classifier on very large data](#164-training-a-classifier-on-very-large-data)
     - [16.5 handling imbalanced classes](#165-handling-imbalanced-classes)
+  - [18 Naive Bayes](#18-naive-bayes)
+    - [18.1 training a classifier for continuous features](#181-training-a-classifier-for-continuous-features)
+    - [18.2 training a classifier for discrete and count features](#182-training-a-classifier-for-discrete-and-count-features)
+    - [18.3 training a Naice Bayes classifier for binary features](#183-training-a-naice-bayes-classifier-for-binary-features)
+    - [18.4 calibrating predicted probabilities](#184-calibrating-predicted-probabilities)
 
 # Machine Learning with Python cookcook
 
@@ -454,6 +471,129 @@ regression.fit(features_standardized, target)
 regression.coef_
 ```
 
+## 14. Trees and Forests
+
+### 14.1 training a decision tree classifier
+
+```python
+from sklearn.tree import DecisionTreeClassifier
+decisiontree = DecisionTreeClassifier(random_state=0)
+decisiontree.fit(features, target)
+```
+
+### 14.2 training a decision tree regressor
+
+```python
+from sklearn.tree import DecisionTreeRegressor
+
+decisiontree = DecisionTreeRegressor(random_state=0)
+decisiontree.fit(features, target)
+```
+
+### 14.3 visualizing a decision tree model
+
+```python
+import pydotplus
+from sklearn.tree import DecisionTreeClassifier
+from IPython.display import Image
+from sklearn import tree
+
+decisiontree = DecisionTreeClassifier(random_state=0)
+decisiontree.fit(features, target)
+
+# create DOT data
+dot_data = tree.export_graphviz(decisiontree, out_file=None, feature_names=iris.feature_names, class_names=iris.target_names)
+
+# draw graph
+graph = pydotplus.graph_from_dot_data(dot_data)
+
+# show graph
+Image(graph.create_png())
+
+# create PDF or PNG
+graph.write_pdf()
+graph.wirte_png()
+```
+
+### 14.4 training a random forest classifier
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+
+randomforest = RandomForestClassifier(random_state=0)
+randomforest.fit(features, target)
+```
+
+### 14.5 training a random forest regressor
+
+```python
+from sklearn.ensemble import RandomForestRegressor
+
+randonforest = RandomForestRegressor(random_state=0)
+randomforest.fit(features, target)
+```
+
+### 14.6 identifying important features in random forests
+
+```python
+imoprtances = randomforests.feature_importances_
+
+indices = np.argsort(importances)[::-1]
+```
+
+### 14.7 selecting important features in random forests
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectFromModel
+
+randomforest = RandomForestClassifier(random_state=0)
+selector = SelectFromModel(randomforest, threshold=0.3)
+
+# select the important features
+features_important = selector.fit_transform(features, target)
+
+model = randomforest.fit(features_important, target)
+```
+
+### 14.8 handling imbalanced classes
+
+```python
+randomforest = RandomForestClassifier(random_state=0, class_weight='balanced')
+randomforest.fit(features. target)
+```
+
+### 14.9 controlling tree size
+
+```python
+decisiontree = DecisionTreeClassifier(random_state=0, \
+                                      max_depth=None, \
+                                      min_sample_split=2, \
+                                      min_sample_leaf=1, \
+                                      min_weight_fraction_leaf=0, \
+                                      max_leaf_nodes=None, \
+                                      min_impurity_decrease=0)
+
+decisiontree.fit(features, target)
+```
+
+### 14.10 improving performance through boosting
+
+```python
+from sklearn.ensemble import AdaBoostClassifier
+
+adaboost = AdaBoostClassifier(random_state=0)
+adaboost.fit(features, target)
+```
+
+### 14.11 evaluating random forests with Oout-of-Bag errors
+
+For every tree there is a separate subset of observations not being used to train that tree. These are called out-of-bag(OOB) observations. We can use OOB observations as a test set to evaluate the performance of our random forest.
+
+```python
+randomforest.oob_score_
+```
+
 ## 15. K-Nearest Neighbors
 
 ### 15.1 finding an observation's nearest neighbors
@@ -574,4 +714,76 @@ The “balanced” mode uses the values of y to automatically adjust weights inv
 # scaling features
 # fit model use class_weight='balanced'
 logistic_regression = LogisticRegression(random_state=0, class_weight='balanced')
+```
+
+## 18 Naive Bayes
+
+### 18.1 training a classifier for continuous features
+
+The most common type of naive Bayes classifier is the Gaussian naive Bayes. In Gaussian naive Bayes, we assume that the likelihood of the feature values, $x$, given an observation is of class $y$, follows a normal distribution.:
+
+$$
+p\left(x_{j} | y\right)=\frac{1}{\sqrt{2 \pi \sigma_{y}^{2}}} e^{-\frac{\left(x_{j}-\mu_{y}\right)^{2}}{2 \sigma_{y}^{2}}}
+$$
+
+```python
+from sklearn.naive_bayes import GaussianNB
+
+clf = GaussianNB()
+clf.fit(features, target)
+```
+
+### 18.2 training a classifier for discrete and count features
+
+```python
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.feature_extraction.text import CountVecterizer
+
+# create bag of words
+count = CountVecterizer()
+bow = count.fit_transform(text_data)
+
+# create feature matrix
+features = bow.toarray()
+
+# create multinomial naive Bayes object with prior probabilities of each class
+clf = MultinomialNB(class_prior=[0.25, 0.5])
+clf.fit(features, target)
+```
+
+### 18.3 training a Naice Bayes classifier for binary features
+
+```python
+from sklearn.naive_bayes import BernoulliNB
+
+clf = BernoulliNB(class_prior=[0.25, 0.5])
+clf.fit(features, target)
+```
+
+### 18.4 calibrating predicted probabilities
+
+In calibratedClassifierCV the training sets are used to train the model and the test set is used to calibrate the predicted probabilities. The returned predicted probabilities are the average of the k-folds.
+
+```python
+from sklearn.naive_bayes import GaussianNB
+from sklearn.calibration import CalibratedClassiferCV
+
+# create gaussian Naive Bayes object
+clf = GaussianNB()
+
+# create calibrated cross-validation with sigmoid calibration
+clf_sigmoid = CalibratedClassifierCV(clf, cv=2, method='sigmoid')
+
+# calibrate probabilities
+clf_sigmoid.fit(features, target)
+```
+
+```python
+# Train a Gaussian naive Bayes then predict class probabilities
+classifer.fit(features, target).predict_proba(new_observation)
+## output: array([[  2.58229098e-04,   9.99741447e-01,   3.23523643e-07]])
+
+# View calibrated probabilities
+classifer_sigmoid.predict_proba(new_observation)
+## output: array([[ 0.31859969,  0.63663466,  0.04476565]])
 ```
