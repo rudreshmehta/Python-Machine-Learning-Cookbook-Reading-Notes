@@ -8,6 +8,11 @@
   - [7. Handling dates and times](#7-handling-dates-and-times)
   - [8. Handling Images](#8-handling-images)
   - [9. Dimensionality reduction using feature extraction](#9-dimensionality-reduction-using-feature-extraction)
+    - [9.1 reducing features using principal components](#91-reducing-features-using-principal-components)
+    - [9.2 reducing features when data is linearly inseparable](#92-reducing-features-when-data-is-linearly-inseparable)
+    - [9.3 reducing features by maximizing class separability](#93-reducing-features-by-maximizing-class-separability)
+    - [9.4 reducing features using matrix factorization](#94-reducing-features-using-matrix-factorization)
+    - [9.5 reducing features on sparse data](#95-reducing-features-on-sparse-data)
   - [10. Dimensionality reduction suing feature selection](#10-dimensionality-reduction-suing-feature-selection)
   - [11. Model evaluation](#11-model-evaluation)
     - [11.1 cross-validating models](#111-cross-validating-models)
@@ -59,11 +64,23 @@
     - [16.3 reducing variance through regularization](#163-reducing-variance-through-regularization)
     - [16.4 training a classifier on very large data](#164-training-a-classifier-on-very-large-data)
     - [16.5 handling imbalanced classes](#165-handling-imbalanced-classes)
+  - [17 Support Vector Machines](#17-support-vector-machines)
+    - [17.1 training a linear classifier](#171-training-a-linear-classifier)
+    - [17.2 handling linearly inseparable classes using kernels](#172-handling-linearly-inseparable-classes-using-kernels)
+    - [17.3 creating predicted probabilities](#173-creating-predicted-probabilities)
+    - [17.4 identifying support vectors](#174-identifying-support-vectors)
+    - [17.5 handling imbalanced classes](#175-handling-imbalanced-classes)
   - [18 Naive Bayes](#18-naive-bayes)
     - [18.1 training a classifier for continuous features](#181-training-a-classifier-for-continuous-features)
     - [18.2 training a classifier for discrete and count features](#182-training-a-classifier-for-discrete-and-count-features)
     - [18.3 training a Naice Bayes classifier for binary features](#183-training-a-naice-bayes-classifier-for-binary-features)
     - [18.4 calibrating predicted probabilities](#184-calibrating-predicted-probabilities)
+  - [19 Clustering](#19-clustering)
+    - [19.1 clustering using K-Means](#191-clustering-using-k-means)
+    - [19.2 speeding up K-Means clustering](#192-speeding-up-k-means-clustering)
+    - [19.3 clustering using Meanshift](#193-clustering-using-meanshift)
+    - [19.4 clustering using DBSCAN](#194-clustering-using-dbscan)
+    - [19.5 clustering using hierarchical merging](#195-clustering-using-hierarchical-merging)
 
 # Machine Learning with Python cookcook
 
@@ -84,6 +101,80 @@
 ## 8. Handling Images
 
 ## 9. Dimensionality reduction using feature extraction
+
+### 9.1 reducing features using principal components
+
+```python
+from sklearn.decomposition import PCA
+
+pca = PCA(n_components=0.99, whiten=True)
+pca.fit_transform(features)
+## whiten=True transforms the values of each principal component so that they have zero mean and unit variance
+```
+
+### 9.2 reducing features when data is linearly inseparable
+
+```python
+from sklearn.decomposition import KernelPCA
+
+kpca = KernelPCA(kernel='rbf'), gamma=15, n_components=1)
+kpca.fit_transform(features)
+```
+
+### 9.3 reducing features by maximizing class separability
+
+```python
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+
+lda = LinearDiscriminantAnalysis(n_components=1)
+features_lda = lda.fit(features, target).transform(features)
+
+ # Create function
+def select_n_components(var_ratio, goal_var: float) -> int: # Set initial variance explained so far
+  total_variance = 0.0
+          # Set initial number of features
+  n_components = 0
+  # For the explained variance of each feature:
+  for explained_variance in var_ratio:
+  # Add the explained variance to the total
+  total_variance += explained_variance # Add one to the number of components
+              n_components += 1
+              # If we reach our goal level of explained variance
+  if total_variance >= goal_var: # End the loop
+  break
+          # Return the number of components
+  return n_components # Run function
+      select_n_components(lda_var_ratios, 0.95)
+```
+
+### 9.4 reducing features using matrix factorization
+
+```python
+## NMF(non-negative matrix fatorization)
+from sklearn.decomposition import NMF
+
+# Create, fit, and apply NMF
+nmf = NMF(n_components=10, random_state=1)
+features_nmf = nmf.fit_transform(features)
+```
+
+### 9.5 reducing features on sparse data
+
+```python
+## use truncated Singular Value Decomposition (SVD)
+
+from sklearn.decomposition import TruncatedSVD
+from sklearn.sparse import csr_matrix
+
+# Make sparse matrix
+features_sparse = csr_matrix(features)
+
+# Create a TSVD
+tsvd = TruncatedSVD(n_components=10)
+
+# conduct TSVD on sparse matrix
+features_sparse_tsvd = tsvd.fit(features_sparse).transform(features_sparse)
+```
 
 ## 10. Dimensionality reduction suing feature selection
 
@@ -716,6 +807,75 @@ The “balanced” mode uses the values of y to automatically adjust weights inv
 logistic_regression = LogisticRegression(random_state=0, class_weight='balanced')
 ```
 
+## 17 Support Vector Machines
+
+### 17.1 training a linear classifier
+
+```python
+from sklearn.svm import LinearSVC
+
+svc = LinearSVC(C=1.0).fit(features_std, target)
+
+## visualize the boundary
+w = svc.coef_[0]
+a = - w[0]
+xx = np.linspace(-2.5, 2.5)
+yy = ( a * xx - (svc.intercept_[0]) ) / w[1]
+
+plt.plot(xx, yy)
+```
+
+### 17.2 handling linearly inseparable classes using kernels
+
+```python
+# Create a support vector machine with a radial basis function kernel
+svc = SVC(kernel="rbf", random_state=0, gamma=1, C=1).fit(features, target)
+```
+
+```python
+# Plot observations and decision boundary hyperplane
+from matplotlib.colors import ListedColormap import matplotlib.pyplot as plt
+def plot_decision_regions(X, y, classifier):
+cmap = ListedColormap(("red", "blue"))
+xx1, xx2 = np.meshgrid(np.arange(-3, 3, 0.02), np.arange(-3, 3, 0.02))
+Z = classifier.predict(np.array([xx1.ravel(), xx2.ravel()]).T)
+Z = Z.reshape(xx1.shape)
+plt.contourf(xx1, xx2, Z, alpha=0.1, cmap=cmap)
+for idx, cl in enumerate(np.unique(y)):
+  plt.scatter(x=X[y == cl, 0], y=X[y == cl, 1],
+              alpha=0.8, c=cmap(idx),
+              marker="+", label=cl)
+```
+
+### 17.3 creating predicted probabilities
+
+```python
+# Create support vector classifier object
+svc = SVC(kernel="linear", probability=True, random_state=0).fit(features_standardized, target)
+
+model.predict_proba(new_observation)
+```
+
+### 17.4 identifying support vectors
+
+```python
+# View support vectors
+model.support_vectors_
+
+## we can view the indices of the support vectors using:
+model.support_
+
+## we can use this to find the number of support vectors belonging to each class:
+model.n_support_
+```
+
+### 17.5 handling imbalanced classes
+
+```python
+# Create support vector classifier
+svc = SVC(kernel="linear", class_weight="balanced", C=1.0, random_state=0).fit(features_standardized, target)
+```
+
 ## 18 Naive Bayes
 
 ### 18.1 training a classifier for continuous features
@@ -786,4 +946,60 @@ classifer.fit(features, target).predict_proba(new_observation)
 # View calibrated probabilities
 classifer_sigmoid.predict_proba(new_observation)
 ## output: array([[ 0.31859969,  0.63663466,  0.04476565]])
+```
+
+## 19 Clustering
+
+### 19.1 clustering using K-Means
+
+```python
+from sklearn.cluster import KMeans
+
+cluser = KMeans(n_clusters=n, random_state=0)
+model = cluster.fit(features_std)
+```
+
+### 19.2 speeding up K-Means clustering
+
+```python
+from sklearn.cluster MiniBatchKMeans
+
+cluster = MiniBatchKMeans(n_clusters=n, random_state=0, batch_size=100)
+model = cluster.fit(features_std)
+```
+
+### 19.3 clustering using Meanshift
+
+```python
+from sklearn.cluster import MeanShift
+
+# Create meanshift object
+cluster = MeanShift(n_jobs=-1)
+
+# Train model
+model = cluster.fit(features_std)
+```
+
+### 19.4 clustering using DBSCAN
+
+```python
+from sklearn.cluster import DBSCAN
+
+# Create meanshift object
+cluster = DBSCAN(n_jobs=-1)
+
+# Train model
+model = cluster.fit(features_std)
+```
+
+### 19.5 clustering using hierarchical merging
+
+```python
+from sklearn.cluster import AgglomeractiveClustering
+
+# Create meanshift object
+cluster = AgglomerativeClustering(n_clusters=3)
+
+# Train model
+model = cluster.fit(features_std)
 ```
